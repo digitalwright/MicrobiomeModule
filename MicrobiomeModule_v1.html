@@ -1,0 +1,614 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>Microbiome Module</title>
+
+<style type="text/css">
+/* Main Page */
+
+#Body {
+background-color: #F0F0F0;
+color: #333;
+font-weight: lighter;
+line-height: 120%;
+overflow: scroll;
+}
+#Body b {
+font-weight: bold;
+}
+#ContentFrame {
+width: 650px;
+min-height: 500px;
+border-radius: 6px;
+margin-left: 15px;
+background-color:white;
+margin-bottom: 2cm;
+}
+#Content {
+margin: 20px;
+margin-bottom: 40px;
+padding-top: 5px;
+padding-bottom: 10px;
+}
+#Content li {
+margin-top: 0.5em;
+padding-left: 0.5em;
+}
+#Content p.indent {
+/*margin-left: 1em;*/
+margin-top: 0.5em;
+}
+#Content p.hanging {
+margin-left: 1em;
+text-indent: -1em;
+margin-top: 0.5em;
+}
+#Content hr {
+display: block;
+height: 1px;
+border: 0;
+border-top: 1px solid #777;
+}
+#Content img {
+border-style: none;
+}
+#Main {
+width: 150px;
+height: 500px;
+float: left;
+position: relative;
+}
+
+/* Content */
+
+.c0 {
+margin: 0;
+margin-top: 20px;
+margin-bottom: 20px;
+font-size: 1.3em;
+}
+.c1 {
+margin: 0;
+margin-top: 40px;
+margin-bottom: 20px;
+font-size: 1.3em;
+}
+a {
+color: #0F5EA1;
+text-decoration: none;
+}
+a:visited {
+color: #0F5EA1;
+}
+a:hover {
+text-decoration: underline;
+}
+
+/* Code */
+
+.code {
+border-radius: 6px;
+border: 1px dashed #555;
+background-color: #F0F0F0;
+color: #000;
+padding: 15px;
+margin: 0;
+margin-top: 15px;
+margin-bottom: 20px;
+font-family: 'Lucida Sans Typewriter', 'Lucida Typewriter', Courier, 'Courier New', monospace;
+}
+
+pre .codebox,
+pre .linenumber {
+background-color: #F0F0F0;
+font-family: 'Lucida Sans Typewriter', 'Lucida Typewriter', Courier, 'Courier New', monospace;
+color: #000;
+padding: 0;
+margin: 0;
+border: 1px dashed #555;
+}
+pre .codebox {
+display: block;
+overflow-x: hidden;
+border-left: 0;
+}
+pre .line {
+padding: 0 0 0 0.5em;
+display: block;
+}
+pre .line:hover {
+background-color: #FFFF99;
+}
+pre .linenumber {
+float:left;
+border-right: 1px solid #777;
+text-align: right;
+}
+pre .linenumber span {
+display: block;
+padding: 0 0.5em 0 1em;
+color: #555;
+font-weight: 100;
+}
+pre .results {
+padding: 0 0 0 0.5em;
+display: block;
+background-color: #FFF;
+}
+pre .cl {
+display: block;
+clear: both;
+}
+span .chars {
+color: DarkRed;
+}
+span .numbers {
+color: DarkGreen;
+}
+span .comments {
+color: #444;
+font-style: italic;
+}
+span .functs {
+color: #003399;
+font-weight: bold;
+}
+div .breakout {
+margin 0.5em;
+margin-top: 2em;
+margin-bottom: 2em;
+}
+#displayText {
+font-weight: bold;
+float: right;
+}
+</style>
+
+<script type="text/javascript">
+numberLines = function() {
+	var pre = document.getElementsByTagName('pre'),
+	pl = pre.length;
+	var k = 1;
+	for (var i = 0; i < pl; i++) {
+		var s = pre[i].innerHTML.split("\n");
+		var x = new Array(s.length);
+		x[0] = 0;
+		var inline = 0;
+		for (j = 1; j < s.length; j++) {
+			if (s[j].charAt(0) == '&') { // line of code
+				if (inline == 1)
+					s[j - 1] += '</span>';
+				if (s[j].length == 5) {
+					s[j] += '\n';
+					x[j] = -1;
+				} else {
+					x[j] = 0;
+				}
+				s[j] = '<span class="line">' + s[j].substring(5);
+				inline = 1;
+			} else if (s[j].charAt(0) == '+') { // line of code
+				if (s[j].length == 2) {
+					x[j] = -1;
+				} else {
+					x[j] = 0;
+				}
+				s[j] = '<span class="line">' + s[j].substring(2) + '</span>';
+			} else { // line of results
+				if (inline == 1)
+					s[j - 1] += '</span>';
+				inline = 0;
+				s[j] = '<span class="results">' + s[j] + '</span>';
+				x[j] = 1;
+			}
+		}
+		if (inline == 1)
+			s[j - 1] += '</span>';
+		
+		pre[i].innerHTML = '<span class="linenumber"></span>' + s.join('') + '<span class="cl"></span>';
+		
+		for (var j = 0; j < s.length; j++) {
+			var line_num = pre[i].getElementsByTagName('span')[0];
+			if (x[j] == 0) { // line of code
+				line_num.innerHTML += '<span>' + k + '</span>';
+				k++;
+			} else if (x[j] < 0) { // empty line of code
+				line_num.innerHTML += '<span>-</span>';
+			} else { // line of results
+				line_num.innerHTML += '<span class="results"><br></span>';
+			}
+		}
+	}
+}
+
+toggle = function() {
+	var text = document.getElementById("displayText");
+	if (text.innerHTML == "Hide output") {
+		text.innerHTML = "Show output";
+	} else {
+		text.innerHTML = "Hide output";
+	}
+	
+	var lines = document.getElementsByClassName("results");
+	for (var i = 0; i < lines.length; i++) {
+		if (lines[i].style.display == "none") {
+			lines[i].style.display = "block";
+		} else {
+			lines[i].style.display = "none";
+		}
+	}
+}
+</script>
+
+</head>
+
+<body id="Body" onload="numberLines(); toggle();">
+<div id="ContentFrame">
+<div id="Content">
+
+<p class="c0">Microbiome Module</p>
+
+This lesson uses a sequence table with one row per microbiome sample and one column per observed sequence. To begin, we will load the sequence table.<br><br>
+
+<a id="displayText" href="javascript:toggle();">Hide output</a><br>
+
+<pre><span class="codebox"><span class="line"><span class='comments'># import the sequence table</span></span>
+&gt; seqTab &lt;- <span class='functs'>read.csv</span>&#40;<span class='chars'>&quot;~/seqTab.csv&quot;</span>,
++ row.names=<span class='numbers'>1</span>&#41;
+&gt; seqTab &lt;- <span class='functs'>as.matrix</span>&#40;seqTab&#41;
+&gt; <span class='functs'>dim</span>&#40;seqTab&#41;
+[1]   15 1564
+&gt; ns &lt;- <span class='functs'>rownames</span>&#40;seqTab&#41;</span></pre>
+
+<div class="breakout">As we can see, there were 15 microbiome samples and 1,564 different sequences observed. Next, we can plot the number of sequences obtained per sample.</div>
+
+<pre><span class="codebox"><span class="line"><span class='comments'># plot the number of sequences per sample</span></span>
+&gt; nSeqs &lt;- <span class='functs'>rowSums</span>&#40;seqTab&#41;
+&gt; <span class='functs'>plot</span>&#40;nSeqs,
++ xlab=<span class='chars'>&quot;Sample&quot;</span>,
++ ylab=<span class='chars'>&quot;Number of sequences&quot;</span>,
++ xaxt=<span class='chars'>&quot;n&quot;</span>&#41;
+&gt; <span class='functs'>axis</span>&#40;<span class='numbers'>1</span>,
++ <span class='functs'>seq_along</span>&#40;ns&#41;,
++ ns&#41;
+&gt; <span class='functs'>which.min</span>&#40;nSeqs&#41;
+AD.200 
+     5 
+&gt; <span class='functs'>which.max</span>&#40;nSeqs&#41;
+NP.20 
+   11 
+&gt; <span class='functs'>max</span>&#40;nSeqs&#41;
+[1] 16720</span></pre>
+
+<div class="breakout">As can be seen, the number of sequences varies considerably from sample-to-sample. Hence, it makes sense to work with a normalized version of the sequence table, where the rows of the table sum to 1.</div>
+
+<pre><span class="codebox"><span class="line"><span class='comments'># normalize the table by row</span></span>
+&gt; normTab &lt;- seqTab/nSeqs</span></pre>
+
+<div class="breakout">Now we can plot a <a href="https://en.wikipedia.org/wiki/Rank_abundance_curve">rank abundance curve</a>, which is commonly used by ecologists. This requires reordering the columns of the table because they are not already in descending order. Plotting the data on a log-log scale allows us to better view the low-abundance organisms.</div>
+
+<pre><span class="codebox"><span class="line"><span class='comments'># plot a rank abundance curve</span></span>
+&gt; cSeqs &lt;- <span class='functs'>colMeans</span>&#40;normTab&#41;
+&gt; <span class='functs'>plot</span>&#40;cSeqs&#41;
+&gt; <span class='comments'># reorder in descending order</span>
+&gt; o &lt;- <span class='functs'>order</span>&#40;cSeqs, decreasing=TRUE&#41;
+&gt; <span class='comments'># plot on a log-log scale</span>
+&gt; <span class='functs'>plot</span>&#40;cSeqs[o], log=<span class='chars'>&quot;xy&quot;</span>&#41; <span class='comments'># identical to sort&#40;cSeqs&#41;</pre></span>
+
+<div class="breakout">Previously, we classified each of these sequences to a taxonomic reference group. This data was stored in the headers of the sequences in FASTA format. We can parse these headers to determine the most common taxa.</div>
+
+<pre><span class="codebox"><span class="line"><span class='comments'># what are the most common organisms?</span></span>
+&gt; <span class='functs'>library</span>&#40;DECIPHER&#41;
+&gt; dna &lt;- <span class='functs'>readDNAStringSet</span>&#40;<span class='chars'>&quot;~/seqs.fas&quot;</span>&#41;
+&gt; dna
+  A DNAStringSet instance of length 1564
+       width seq                  names               
+   [1]   427 TAGGGAATC...AGCAAACA 1|Root; Bacteria;...
+   [2]   427 TGGGGAATA...AGCAAACA 2|Root; Bacteria;...
+   [3]   427 TGGGGAATA...AGCAAACA 3|Root; Bacteria;...
+   [4]   427 TGGGGAATA...AGCAAACA 4|Root; Bacteria;...
+   [5]   427 TGGGGAATT...AGCAAACA 5|Root; Bacteria;...
+   ...   ... ...
+[1560]   427 TGGGGAATT...AGCAAACA 1560|Root; Bacter...
+[1561]   427 TGGGGAATC...AGCAAACA 1561|Root; Bacter...
+[1562]   427 TAGGGAATC...AGCAAACA 1562|Root; Bacter...
+[1563]   428 TGGGGAATT...AGCAAACG 1563|Root; Bacter...
+[1564]   426 TGGGGAATT...AGCAAACG 1564|Root; Bacter...
+&gt; taxonomy &lt;- <span class='functs'>strsplit</span>&#40;<span class='functs'>names</span>&#40;dna&#41;, <span class='chars'>&quot;; &quot;</span>, fixed=TRUE&#41;
+&gt; taxon &lt;- <span class='functs'>sapply</span>&#40;taxonomy, tail, n=<span class='numbers'>1</span>&#41;
+&gt; groups &lt;- <span class='functs'>tapply</span>&#40;cSeqs, taxon, sum&#41;
+&gt; <span class='functs'>head</span>&#40;<span class='functs'>sort</span>&#40;groups, decreasing=TRUE&#41;&#41;
+unclassified_Enterobacteriaceae 
+                     0.05742346 
+        unclassified_HQ190410_g 
+                     0.03110081 
+          Enterococcus_faecalis 
+                     0.02678832 
+        unclassified_HM061812_g 
+                     0.02523332 
+           unclassified_Gaiella 
+                     0.02336521 
+          unclassified_Bacillus 
+                     0.02096371 </span></pre>
+
+<div class="breakout">Microbiome data is notorious for containing contaminants that are part of the "kitome" &#40;experimental reagents&#41;. The contamination can be detected by sequencing a negative control &#40;i.e., no sample&#41;, as we have done here in sample "AD.C".</div>
+
+<pre><span class="codebox"><span class="line"><span class='comments'># what contaminants are in the negative control sample?</span></span>
+&gt; w &lt;- <span class='functs'>which</span>&#40;ns==<span class='chars'>&quot;AD.C&quot;</span>&#41;
+&gt; taxon[<span class='functs'>which</span>&#40;seqTab[w,] &gt; <span class='numbers'>0</span>&#41;]
+ [1] "Propionibacterium_acnes"         
+ [2] "unclassified_Lachnospiraceae"    
+ [3] "unclassified_AB009176_g"         
+ [4] "unclassified_Lysinibacillus"     
+ [5] "Bacillus_chungangensis"          
+ [6] "EU463610_s"                      
+ [7] "unclassified_Bradyrhizobium"     
+ [8] "AY212564_s"                      
+ [9] "unclassified_JN713389_g"         
+[10] "unclassified_Bacillus"           
+[11] "unclassified_Flavisolibacter"    
+[12] "Paenibacillus_ginsengarvi"       
+[13] "unclassified_AY244965_g"         
+[14] "Aquabacterium_olei"              
+[15] "unclassified_Mogibacterium_f"    
+[16] "unclassified_Micromonosporaceae" 
+[17] "AVBN_s"                          
+[18] "unclassified_Erysipelotrichaceae"
+[19] "Lactococcus_piscium"             
+[20] "unclassified_Devosia"            
+[21] "unclassified_EF436358_g"         
+[22] "EU775870_s"                      
+[23] "EU463778_s"                      
+[24] "unclassified_JN713389_g"         
+[25] "EU471619_s"                      
+[26] "Ralstonia_insidiosa"             
+[27] "FR774560_s"                      
+[28] "unclassified_GU302849_g"         
+[29] "unclassified_Tissierella"        
+[30] "unclassified_Root"               
+[31] "Meiothermus_timidus"             
+[32] "unclassified_AB009176_g"         </span></pre>
+
+<div class="breakout">We can look for the presence of these contaminants in other samples as well.</div>
+
+<pre><span class="codebox"><span class="line"><span class='comments'># are these contaminants in other samples?</span></span>
+&gt; contaminants &lt;- <span class='functs'>which</span>&#40;seqTab[w,] &gt; <span class='numbers'>0</span>&#41;
+&gt; <span class='functs'>image</span>&#40;<span class='functs'>log10</span>&#40;seqTab[, contaminants]&#41;,
++ col=<span class='functs'>c</span>&#40;<span class='chars'>&quot;green&quot;</span>, <span class='chars'>&quot;yellow&quot;</span>, <span class='chars'>&quot;orange&quot;</span>, <span class='chars'>&quot;red&quot;</span>&#41;&#41;</span></pre>
+
+<div class="breakout">Here we sequenced a positive control sample &#40;AD.KP&#41; to verify that we detect only a single microorganism. As seen below, we observe several reads in this sample, but the vast majority trace back to organisms that are probably the correct one &#40;<i>Klebsiella</i>&#41; when accounting for sequencing error.</div>
+
+<pre><span class="codebox"><span class="line"><span class='comments'># what is in its the Klebsiella sample?</span></span>
+&gt; w &lt;- <span class='functs'>which</span>&#40;ns==<span class='chars'>&quot;AD.KP&quot;</span>&#41;
+&gt; posControl &lt;- <span class='functs'>which</span>&#40;seqTab[w,] &gt; <span class='numbers'>0</span>&#41;
+&gt; <span class='functs'>cbind</span>&#40;taxon[posControl],
++ seqTab[w, posControl]&#41;
+     [,1]                              [,2]  
+X2   "unclassified_Enterobacteriaceae" "3278"
+X3   "unclassified_Enterobacteriaceae" "2233"
+X7   "unclassified_Enterobacteriaceae" "1335"
+X8   "unclassified_Klebsiella"         "1312"
+X11  "unclassified_Enterobacteriaceae" "1191"
+X18  "unclassified_Lysinibacillus"     "1"   
+X160 "unclassified_Listeria"           "1"   
+&gt; pos &lt;- dna[posControl]
+&gt; pos &lt;- <span class='functs'>AlignSeqs</span>&#40;pos&#41;
+Determining distance matrix based on shared 8-mers:
+  |============================================| 100%
+<br>
+Time difference of 0 secs
+<br>
+Clustering into groups by similarity:
+  |============================================| 100%
+<br>
+Time difference of 0.01 secs
+<br>
+Aligning Sequences:
+  |============================================| 100%
+<br>
+Time difference of 0.07 secs
+<br>
+Iteration 1 of 2:
+<br>
+Determining distance matrix based on alignment:
+  |============================================| 100%
+<br>
+Time difference of 0 secs
+<br>
+Reclustering into groups by similarity:
+  |============================================| 100%
+<br>
+Time difference of 0 secs
+<br>
+Realigning Sequences:
+  |============================================| 100%
+<br>
+Time difference of 0.01 secs
+<br>
+Alignment converged - skipping remaining iteration.
+<br>
+&gt; <span class='functs'>BrowseSeqs</span>&#40;pos, highlight=<span class='numbers'>1</span>&#41;
+&gt; d &lt;- <span class='functs'>DistanceMatrix</span>&#40;pos&#41;
+  |============================================| 100%
+<br>
+Time difference of 0 secs
+<br>
+&gt; c &lt;- <span class='functs'>IdClusters</span>&#40;d, method=<span class='chars'>&quot;UPGMA&quot;</span>, showPlot=T&#41;
+  |============================================| 100%
+<br>
+Time difference of 0.26 secs</span></pre>
+
+<div class="breakout">Another way we can quantify the accuracy of our procedure is by sequencing biological replicates. Here we did this by collecting two microbiome samples from the same soil location AD.0 and NP.0. We can plot the relative abundances of sequences in each sample to view the method&#39;s repeatability. If discrepancies between replicates are due purely to sampling error, we would expect the error to be approximately the square-root of the number of sequences.</div>
+
+<pre><span class="codebox"><span class="line"><span class='comments'># how repeatable are the two samples from position 0?</span></span>
+&gt; w &lt;- <span class='functs'>which</span>&#40;ns==<span class='chars'>&quot;AD.0&quot;</span> |
++ ns==<span class='chars'>&quot;NP.0&quot;</span>&#41;
+&gt; <span class='functs'>plot</span>&#40;seqTab[w[<span class='numbers'>1</span>],],
++ seqTab[w[<span class='numbers'>2</span>],],
++ log=<span class='chars'>&quot;xy&quot;</span>,
++ asp=<span class='numbers'>1</span>&#41;
+Warning messages:
+1: In xy.coords(x, y, xlabel, ylabel, log) :
+  615 x values <= 0 omitted from logarithmic plot
+2: In xy.coords(x, y, xlabel, ylabel, log) :
+  640 y values <= 0 omitted from logarithmic plot
+&gt; <span class='comments'># expected sampling error is ~n^0.5</span>
+&gt; x &lt;- <span class='numbers'>0</span>:<span class='functs'>max</span>&#40;seqTab[w[<span class='numbers'>1</span>:<span class='numbers'>2</span>],]&#41;
+&gt; y &lt;- x + <span class='functs'>sqrt</span>&#40;x&#41;
+&gt; <span class='functs'>lines</span>&#40;x, y&#41;
+&gt; y &lt;- x - <span class='functs'>sqrt</span>&#40;x&#41;
+&gt; <span class='functs'>lines</span>&#40;x, y&#41;
+&gt; <span class='functs'>abline</span>&#40;a=<span class='numbers'>0</span>, b=<span class='numbers'>1</span>&#41; <span class='comments'># identity line</span></pre></span>
+
+<div class="breakout">We expect our soil sample to have much greater <a href="https://en.wikipedia.org/wiki/Alpha_diversity">alpha-Diversity</a> than the control samples. We can confirm that with a sample plot.</div>
+
+<pre><span class="codebox"><span class="line"><span class='comments'># calculate alpha-Diversity per sample</span></span>
+&gt; Shannon &lt;- <span class='functs'>rowSums</span>&#40;seqTab &gt; <span class='numbers'>0</span>&#41;
+&gt; <span class='functs'>plot</span>&#40;Shannon,
++ xlab=<span class='chars'>&quot;Sample&quot;</span>,
++ ylab=<span class='chars'>&quot;alpha-Diversity&quot;</span>,
++ xaxt=<span class='chars'>&quot;n&quot;</span>&#41;
+&gt; <span class='functs'>axis</span>&#40;<span class='numbers'>1</span>,
++ <span class='functs'>seq_along</span>&#40;ns&#41;,
++ ns&#41;</span></pre>
+
+<div class="breakout">We might hypothesize that the soil samples that were taken from nearer locations would have more similar microbiomes. We can test this hypothesis by calculating <a href="https://en.wikipedia.org/wiki/Beta_diversity">beta-Diversity</a> and using it to create a tree depicting the relationships among samples.</div>
+
+<pre><span class="codebox"><span class="line"><span class='comments'># create a Bray-Curtis dissimilarity matrix</span></span>
+&gt; n &lt;- <span class='functs'>nrow</span>&#40;normTab&#41;
+&gt; BC &lt;- <span class='functs'>matrix</span>&#40;<span class='numbers'>0</span>, n, n, dimnames=<span class='functs'>list</span>&#40;ns, ns&#41;&#41;
+&gt; for &#40;i in <span class='numbers'>1</span>:&#40;n - <span class='numbers'>1</span>&#41;&#41; {
++ &nbsp;for &#40;j in &#40;i + <span class='numbers'>1</span>&#41;:n&#41; {
++ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;C &lt;- <span class='functs'>sum</span>&#40;normTab[i,] &gt; <span class='numbers'>0</span> & normTab[j,] &gt; <span class='numbers'>0</span>&#41;
++ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;S1 &lt;- <span class='functs'>sum</span>&#40;normTab[i,] &gt; <span class='numbers'>0</span>&#41;
++ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;S2 &lt;- <span class='functs'>sum</span>&#40;normTab[j,] &gt; <span class='numbers'>0</span>&#41;
++ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BC[i, j] &lt;- <span class='numbers'>1</span> - <span class='numbers'>2</span>*C/&#40;S1 + S2&#41;
++ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BC[j, i] &lt;- BC[i, j]
++ &nbsp;}
++ }
+&gt; <span class='functs'>IdClusters</span>&#40;BC, cutoff=<span class='numbers'>0.2</span>, showPlot=TRUE&#41;
+  |============================================| 100%
+<br>
+Time difference of 0.15 secs
+<br>
+       cluster
+AD.0         2
+AD.10        2
+AD.20        1
+AD.100       1
+AD.200       4
+AD.Far       1
+AD.C         6
+AD.KP        7
+NP.0         2
+NP.10        1
+NP.20        1
+NP.100       1
+NP.200       1
+NP.Far       3
+NP.MB        5</span></pre>
+
+<div class="breakout">Here our data table is binned by unique sequence, but an alternative approach is to bin the sequences into <a href="https://en.wikipedia.org/wiki/Operational_taxonomic_unit">operational taxonomic units</a> &#40;OTUs&#41; that contain closely related sequences. To do so we must align the sequences and cluster them into groups.</div>
+
+<pre><span class="codebox"><span class="line"><span class='comments'># cluster the samples into OTUs with >= 97% similarity</span></span>
+&gt; RNA &lt;- <span class='functs'>AlignSeqs</span>&#40;<span class='functs'>RNAStringSet</span>&#40;dna&#41;&#41;
+Determining distance matrix based on shared 8-mers:
+  |============================================| 100%
+<br>
+Time difference of 44.15 secs
+<br>
+Clustering into groups by similarity:
+  |============================================| 100%
+<br>
+Time difference of 0.68 secs
+<br>
+Aligning Sequences:
+  |============================================| 100%
+<br>
+Time difference of 10.67 secs
+<br>
+Iteration 1 of 2:
+<br>
+Computing RNA Secondary Structures:
+  |============================================| 100%
+<br>
+Time difference of 3.56 secs
+<br>
+Determining distance matrix based on alignment:
+  |============================================| 100%
+<br>
+Time difference of 2.49 secs
+<br>
+Reclustering into groups by similarity:
+  |============================================| 100%
+<br>
+Time difference of 0.78 secs
+<br>
+Realigning Sequences:
+  |============================================| 100%
+<br>
+Time difference of 7.58 secs
+<br>
+Iteration 2 of 2:
+<br>
+Computing RNA Secondary Structures:
+  |============================================| 100%
+<br>
+Time difference of 4.42 secs
+<br>
+Determining distance matrix based on alignment:
+  |============================================| 100%
+<br>
+Time difference of 2.7 secs
+<br>
+Reclustering into groups by similarity:
+  |============================================| 100%
+<br>
+Time difference of 0.8 secs
+<br>
+Realigning Sequences:
+  |============================================| 100%
+<br>
+Time difference of 2.64 secs
+<br>
+&gt; d &lt;- <span class='functs'>DistanceMatrix</span>&#40;RNA&#41;
+  |============================================| 100%
+<br>
+Time difference of 2.54 secs
+<br>
+&gt; c &lt;- <span class='functs'>IdClusters</span>&#40;d, cutoff=<span class='numbers'>0.03</span>&#41;
+  |============================================| 100%
+<br>
+Time difference of 0.08 secs
+<br>
+&gt; <span class='functs'>head</span>&#40;c&#41;
+                                                                                                                                cluster
+1|Root; Bacteria; Firmicutes; Bacilli; Lactobacillales; Enterococcaceae; Enterococcus; Enterococcus_faecalis                        483
+2|Root; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; unclassified_Enterobacteriaceae        37
+3|Root; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; unclassified_Enterobacteriaceae        37
+4|Root; Bacteria; Proteobacteria; Gammaproteobacteria; Pseudomonadales; Pseudomonadaceae; Pseudomonas; unclassified_Pseudomonas     433
+5|Root; Bacteria; Proteobacteria; Betaproteobacteria; Neisseriales; Neisseriaceae; Neisseria; unclassified_Neisseria                699
+6|Root; Bacteria; Firmicutes; Bacilli; Bacillales; Bacillaceae; Bacillus; unclassified_Bacillus                                     288
+&gt; <span class='functs'>max</span>&#40;c$cluster&#41; <span class='comments'># number of OTUs</span>
+[1] 791</span></pre>
+
+<div class="breakout">Now that we have a mapping between sequences and OTUs, we can collapse our sequence table into an OTU table.</div>
+
+<pre><span class="codebox"><span class="line"><span class='comments'># collapse into an OTU table</span></span>
+&gt; otuTab &lt;- <span class='functs'>apply</span>&#40;normTab,
++ <span class='numbers'>1</span>,
++ <span class='functs'>function</span>&#40;x&#41; {
++ &nbsp;&nbsp;&nbsp;<span class='functs'>tapply</span>&#40;x, c$cluster, sum&#41;
++ }&#41;
+&gt; otuTab &lt;- <span class='functs'>t</span>&#40;otuTab&#41;
+&gt; <span class='functs'>rownames</span>&#40;otuTab&#41; &lt;- ns</span></pre>
+
+<div class="breakout">Another way that we could test for the relationship between our sequences is to perform <a href="https://en.wikipedia.org/wiki/Principal_component_analysis">principal component analysis</a> &#40;PCA&#41;. Here we could hypothesize that soil samples from closer locations would be closer together on the resulting biplot of the first two principle components.</div>
+
+<pre><span class="codebox"><span class="line"><span class='comments'># does the data exhibit a pattern with distance?</span></span>
+&gt; w &lt;- <span class='functs'>which</span>&#40;!&#40;ns %in% <span class='functs'>c</span>&#40;<span class='chars'>&quot;AD.KP&quot;</span>, <span class='chars'>&quot;NP.MB&quot;</span>, <span class='chars'>&quot;AD.C&quot;</span>&#41;&#41;&#41;
+&gt; p &lt;- <span class='functs'>prcomp</span>&#40;otuTab[w,]&#41; <span class='comments'># or could use normTab</span>
+&gt; <span class='functs'>biplot</span>&#40;p, var.axes=FALSE, col=<span class='functs'>c</span>&#40;<span class='numbers'>1</span>, <span class='numbers'>0</span>&#41;&#41;</span></pre>
+
+</div>
+</div>
+</div>
+</body></html>
+
